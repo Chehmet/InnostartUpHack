@@ -27,39 +27,15 @@
     background-image: url('cross_good_q.jpg'); /* Изображение перекрестка */
     background-size: cover;
     border: 2px solid #ccc;
+    overflow: hidden; /* Ограничиваем область видимости для таблицы */
   }
 
-  /* Стили для тепловых точек */
-  .heat-point {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background-color: red;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    transition: all 1s ease; /* Плавное изменение размера тепловых точек */
-  }
-
-  /* Стили для графиков */
-  .chart-container {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 20px;
-  }
-
-  .chart {
-    width: 150px;
-    height: 150px;
-    border: 1px solid #ccc;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 10px;
-    border-radius: 10px;
-  }
-
-  .chart h3 {
-    margin: 5px 0;
+  /* Стили для квадрата таблицы */
+  .square {
+    width: calc(100% / 20);
+    height: calc(100% / 20);
+    float: left;
+    transition: background-color 0.3s ease; /* Плавное изменение цвета квадрата */
   }
 </style>
 </head>
@@ -67,33 +43,6 @@
   <h1>Тепловая карта перекрестка</h1> <!-- Заголовок теперь сверху -->
   <div class="intersection" id="intersection">
     <!-- Тепловые точки будут добавлены сюда с помощью JavaScript -->
-  </div>
-
-  <div class="chart-container">
-    <div class="chart" id="motorcycle-chart">
-      <h3>Мотоциклы</h3>
-      <div class="count">0</div>
-    </div>
-    <div class="chart" id="car-chart">
-      <h3>Легковой автомобиль</h3>
-      <div class="count">0</div>
-    </div>
-    <div class="chart" id="car-trailer-chart">
-      <h3>Легковой автомобиль с прицепом</h3>
-      <div class="count">0</div>
-    </div>
-    <div class="chart" id="truck-chart">
-      <h3>Грузовой автомобиль</h3>
-      <div class="count">0</div>
-    </div>
-    <div class="chart" id="road-train-chart">
-      <h3>Автопоезд</h3>
-      <div class="count">0</div>
-    </div>
-    <div class="chart" id="bus-chart">
-      <h3>Автобус</h3>
-      <div class="count">0</div>
-    </div>
   </div>
 
   <script>
@@ -110,7 +59,6 @@
         // Здесь вы можете обработать полученные данные и отобразить их на веб-странице
         const data = JSON.parse(event.data);
         updateHeatMap(data);
-        updateCharts(data);
     };
 
     // Обработчик события при закрытии соединения
@@ -118,66 +66,33 @@
         console.log('WebSocket disconnected');
     };
 
-    // Функция для обновления тепловых точек на основе данных с бэкенда
+    // Функция для обновления тепловой карты на основе данных с бэкенда
     function updateHeatMap(data) {
       const intersection = document.getElementById('intersection');
 
-      // Удаляем старые тепловые точки
-      const oldHeatPoints = document.querySelectorAll('.heat-point');
-      oldHeatPoints.forEach(point => point.remove());
+      // Удаляем старую таблицу, если она существует
+      while (intersection.firstChild) {
+        intersection.removeChild(intersection.firstChild);
+      }
 
-      // Создаем новые тепловые точки
-      data.forEach(item => {
-        const [x, y] = item.center;
-        const heatPoint = document.createElement('div');
-        heatPoint.classList.add('heat-point');
-        heatPoint.style.left = `${x}px`;
-        heatPoint.style.top = `${y}px`;
-        heatPoint.style.width = heatPoint.style.height = `${item.class * 5}px`; // Размер зависит от значения class
-
-        intersection.appendChild(heatPoint);
-      });
+      // Создаем новую таблицу 20x20
+      for (let i = 0; i < 20; i++) {
+        for (let j = 0; j < 20; j++) {
+          const square = document.createElement('div');
+          square.classList.add('square');
+          const value = data[i][j];
+          square.style.backgroundColor = getColor(value); // Устанавливаем цвет в зависимости от значения
+          intersection.appendChild(square);
+        }
+      }
     }
 
-    // Функция для обновления графиков по каждому виду транспорта
-    function updateCharts(data) {
-      const charts = {
-        motorcycle: document.getElementById('motorcycle-chart').querySelector('.count'),
-        car: document.getElementById('car-chart').querySelector('.count'),
-        carTrailer: document.getElementById('car-trailer-chart').querySelector('.count'),
-        truck: document.getElementById('truck-chart').querySelector('.count'),
-        roadTrain: document.getElementById('road-train-chart').querySelector('.count'),
-        bus: document.getElementById('bus-chart').querySelector('.count')
-      };
-
-      // Обнуляем счетчики для каждого графика
-      Object.values(charts).forEach(chart => chart.textContent = 0);
-
-      // Подсчитываем количество транспорта и обновляем соответствующие графики
-      data.forEach(item => {
-        switch(item.class) {
-          case 0:
-            charts.motorcycle.textContent = parseInt(charts.motorcycle.textContent) + 1;
-            break;
-          case 1:
-            charts.car.textContent = parseInt(charts.car.textContent) + 1;
-            break;
-          case 2:
-            charts.carTrailer.textContent = parseInt(charts.carTrailer.textContent) + 1;
-            break;
-          case 3:
-            charts.truck.textContent = parseInt(charts.truck.textContent) + 1;
-            break;
-          case 4:
-            charts.roadTrain.textContent = parseInt(charts.roadTrain.textContent) + 1;
-            break;
-          case 5:
-            charts.bus.textContent = parseInt(charts.bus.textContent) + 1;
-            break;
-          default:
-            break;
-        }
-      });
+    // Функция для определения цвета квадрата в зависимости от значения
+    function getColor(value) {
+      // Преобразуем значение к диапазону от 0 до 255
+      const normalizedValue = Math.floor((value / 10000) * 255);
+      // Устанавливаем красный цвет в зависимости от нормализованного значения
+      return `rgb(${normalizedValue}, 0, 0)`;
     }
   </script>
 </body>
