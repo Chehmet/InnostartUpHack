@@ -5,110 +5,163 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Тепловая карта перекрестка</title>
 <style>
-  /* Стили для контейнера перекрестка */
+  /* Styles for the intersection container */
   body {
     margin: 0;
     padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-direction: column; /* Добавляем вертикальное выравнивание по центру */
+    flex-direction: column; /* Vertical alignment */
     height: 100vh;
     overflow: scroll;
   }
 
   h1 {
-    margin-top: 20px; /* Отступ сверху для заголовка */
+    margin-top: 20px; /* Top margin for the title */
   }
 
   .intersection {
     position: relative;
     width: 700px;
     height: 700px;
-    background-image: url('cross_good_q.jpg'); /* Изображение перекрестка */
+    background-image: url('cross_good_q.jpg'); /* Intersection image */
     background-size: cover;
     border: 2px solid #ccc;
-    overflow: hidden; /* Ограничиваем область видимости для таблицы */
+    overflow: hidden; /* Limit visibility for the table */
   }
 
-  /* Стили для квадрата таблицы */
+  /* Styles for the circular elements */
   .square {
     width: calc(100% / 20);
     height: calc(100% / 20);
     float: left;
-    transition: background-color 0.3s ease; /* Плавное изменение цвета квадрата */
+    transition: background-color 0.3s ease; /* Smooth color transition */
+    border-radius: 50%; /* Make the square circular */
   }
 </style>
 </head>
 <body>
-  <h1>Тепловая карта перекрестка</h1> <!-- Заголовок теперь сверху -->
+  <h1>Тепловая карта перекрестка</h1> <!-- Title -->
   <div class="intersection" id="intersection">
-    <!-- Тепловые точки будут добавлены сюда с помощью JavaScript -->
+    <!-- Heatmap points will be added here using JavaScript -->
   </div>
 
   <script>
     const socket = new WebSocket('ws://localhost:8766');
 
-    // Обработчик события при открытии соединения
+    // WebSocket event handler for connection opening
     socket.onopen = function(event) {
         console.log('WebSocket connected');
     };
 
-    // Обработчик события при получении сообщения
+    // WebSocket event handler for receiving messages
     socket.onmessage = function(event) {
         console.log('Received message:', event.data);
-        // Здесь вы можете обработать полученные данные и отобразить их на веб-странице
+        // Process received data and display it on the web page
         const data = JSON.parse(event.data);
         updateHeatMap(data);
     };
 
-    // Обработчик события при закрытии соединения
+    // WebSocket event handler for connection closing
     socket.onclose = function(event) {
         console.log('WebSocket disconnected');
     };
 
-    // Функция для обновления тепловой карты на основе данных с бэкенда
-    function updateHeatMap(data) {
-      const fieldData = data.field; // Access the 'field' property of the data
+    // Function to update the heatmap based on backend data
+    function rotateMatrix(matrix, angle) {
+        // Convert angle to radians
+        const radians = angle * Math.PI / 180;
+        const cosAngle = Math.cos(radians);
+        const sinAngle = Math.sin(radians);
 
-      const intersection = document.getElementById('intersection');
+        // Calculate new dimensions of the rotated matrix
+        const width = matrix[0].length;
+        const height = matrix.length;
 
-      // Clear previous content
-      intersection.innerHTML = '';
-
-      // Create new heatmap
-      for (let i = 0; i < fieldData.length; i++) {
-        for (let j = 0; j < fieldData[i].length; j++) {
-          const value = fieldData[i][j];
-          const square = document.createElement('div');
-          square.classList.add('square');
-          square.style.backgroundColor = getColor(value);
-          intersection.appendChild(square);
+        // Initialize a new matrix to store the rotated values
+        const rotatedMatrix = new Array(height);
+        for (let i = 0; i < height; i++) {
+            rotatedMatrix[i] = new Array(width);
         }
-      }
+
+        // Calculate the center of the original matrix
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        // Perform rotation for each element in the original matrix
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                // Calculate the coordinates of the original point relative to the center
+                const xOffset = x - centerX;
+                const yOffset = y - centerY;
+
+                // Apply rotation
+                const rotatedX = Math.round(xOffset * cosAngle - yOffset * sinAngle + centerX);
+                const rotatedY = Math.round(xOffset * sinAngle + yOffset * cosAngle + centerY);
+
+                // Assign the value to the corresponding position in the rotated matrix
+                if (rotatedX >= 0 && rotatedX < width && rotatedY >= 0 && rotatedY < height) {
+                    rotatedMatrix[rotatedY][rotatedX] = matrix[y][x];
+                }
+            }
+        }
+
+        return rotatedMatrix;
+    }
+
+    function updateHeatMap(data) {
+        const fieldData = data.field; // Access the 'field' property of the data
+
+        // Rotate the field data by -30 degrees
+        const rotatedFieldData = rotateMatrix(fieldData, -30);
+
+        const intersection = document.getElementById('intersection');
+
+        // Clear previous content
+        intersection.innerHTML = '';
+
+        // Create new heatmap
+        for (let i = 0; i < rotatedFieldData.length; i++) {
+            for (let j = 0; j < rotatedFieldData[i].length; j++) {
+                const value = rotatedFieldData[i][j];
+                const square = document.createElement('div');
+                square.classList.add('square');
+                // Check if the square is at coordinates (9, 8)
+                if (i === 9 && j === 8) {
+                    square.style.backgroundColor = 'orange'; // Set the color to orange
+                } else if (i === 10 && j === 11) {
+                  square.style.backgroundColor = 'red'; // Set the color to red for coordinates (10, 11)
+                } else if (i === 10 && j === 13) {
+                  square.style.backgroundColor = 'black';
+                } else if (i === 8 && j === 11) {
+                  square.style.backgroundColor = 'green';
+                } else if (i === 9 && j === 14) {
+                  square.style.backgroundColor = 'purple';
+                } else {
+                    square.style.backgroundColor = getColor(value); // Use getColor function for other squares
+                }
+                intersection.appendChild(square);
+            }
+        }
     }
 
     // Function to determine color based on value
-    // Function to determine color based on value
     function getColor(value) {
-      if (value === 0) {
-          return 'transparent'; // Make the cell transparent if value is 0
-      } else {
-          // Normalize the value to the range [0, 1]
-          const normalizedValue = Math.min(1, value / 45000);
+        if (value === 0) {
+            return 'transparent'; // Make the cell transparent if value is 0
+        } else {
+            // Normalize the value to the range [0, 1]
+            const normalizedValue = Math.min(1, value / 45000);
 
-          // Interpolate between blue and red based on the normalized value
-          const r = Math.round(255 * normalizedValue); // Red component
-          const b = Math.round(255 * (1 - normalizedValue)); // Blue component
+            // Interpolate between blue and red based on the normalized value
+            const r = Math.round(255 * normalizedValue); // Red component
+            const b = Math.round(255 * (1 - normalizedValue)); // Blue component
 
-          // Return the RGB color string
-          return `rgb(${r}, 0, ${b})`;
-      }
-  }
-
-
-
-
+            // Return the RGB color string
+            return `rgb(${r}, 0, ${b})`;
+        }
+    }
   </script>
 </body>
 </html>
