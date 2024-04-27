@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тепловая карта перекрестка</title>
+<style>
+  /* Стили для контейнера перекрестка */
+  body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .intersection {
+    position: relative;
+    width: 500px;
+    height: 500px;
+    background-image: url('cross_good_q.jpg'); /* Изображение перекрестка */
+    background-size: cover;
+    border: 2px solid #ccc;
+  }
+
+  /* Стили для тепловых точек */
+  .heat-point {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: red;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 1s ease; /* Плавное изменение размера тепловых точек */
+  }
+</style>
+</head>
+<body>
+  <h1>Тепловая карта перекрестка</h1>
+  <div class="intersection" id="intersection">
+    <!-- Тепловые точки будут добавлены сюда с помощью JavaScript -->
+  </div>
+
+  <script>
+    const socket = new WebSocket('ws://localhost:8000');
+
+    // Обработчик события при открытии соединения
+    socket.onopen = function(event) {
+        console.log('WebSocket connected');
+    };
+
+    // Обработчик события при получении сообщения
+    socket.onmessage = function(event) {
+        console.log('Received message:', event.data);
+        // Здесь вы можете обработать полученные данные и отобразить их на веб-странице
+        const data = JSON.parse(event.data);
+        updateHeatMap(data);
+    };
+
+    // Обработчик события при закрытии соединения
+    socket.onclose = function(event) {
+        console.log('WebSocket disconnected');
+    };
+
+    // Функция для обновления тепловых точек на основе данных с бэкенда
+    function updateHeatMap(data) {
+      const intersection = document.getElementById('intersection');
+
+      // Удаляем старые тепловые точки
+      const oldHeatPoints = document.querySelectorAll('.heat-point');
+      oldHeatPoints.forEach(point => point.remove());
+
+      // Создаем новые тепловые точки
+      data.forEach(item => {
+        const [x, y] = item.center;
+        const heatPoint = document.createElement('div');
+        heatPoint.classList.add('heat-point');
+        heatPoint.style.left = `${x}px`;
+        heatPoint.style.top = `${y}px`;
+        heatPoint.style.width = heatPoint.style.height = `${item.class * 5}px`; // Размер зависит от значения class
+
+        intersection.appendChild(heatPoint);
+      });
+    }
+  </script>
+</body>
+</html>
