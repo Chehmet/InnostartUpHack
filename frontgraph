@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тепловая карта перекрестка</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Вставляем скрипт Chart.js -->
+    <style>
+        /* Styles for the intersection container */
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column; /* Vertical alignment */
+            height: 100vh;
+            overflow: scroll;
+        }
+
+        h1 {
+            margin-top: 20px; /* Top margin for the title */
+        }
+
+        .intersection-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .intersection {
+            position: relative;
+            width: 700px;
+            height: 700px;
+            background-image: url('cross_good_q.jpg'); /* Intersection image */
+            background-size: cover;
+            border: 2px solid #ccc;
+            overflow: hidden; /* Limit visibility for the table */
+            margin-bottom: 20px;
+        }
+
+        /* Styles for the circular elements */
+        .square {
+            width: calc(100% / 20);
+            height: calc(100% / 20);
+            float: left;
+            transition: background-color 0.3s ease; /* Smooth color transition */
+            border-radius: 50%; /* Make the square circular */
+        }
+
+        /* Styles for the chart container */
+        #chartContainer {
+            width: 900px;
+            height: 700px;
+            border: 2px solid #ccc;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тепловая карта перекрестка</h1> <!-- Title -->
+    <div class="intersection-container">
+        <div class="intersection" id="intersection">
+            <!-- Heatmap points will be added here using JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        const socket = new WebSocket('ws://localhost:8766');
+
+        // WebSocket event handler for connection opening
+        socket.onopen = function(event) {
+            console.log('WebSocket connected');
+        };
+
+        // WebSocket event handler for receiving messages
+        socket.onmessage = function(event) {
+            console.log('Received message:', event.data);
+            // Process received data and display it on the web page
+            const data = JSON.parse(event.data);
+            updateHeatMap(data);
+        };
+
+        // WebSocket event handler for connection closing
+        socket.onclose = function(event) {
+            console.log('WebSocket disconnected');
+        };
+
+        // Function to update the heatmap based on backend data
+        function rotateMatrix(matrix, angle) {
+            // Convert angle to radians
+            const radians = angle * Math.PI / 180;
+            const cosAngle = Math.cos(radians);
+            const sinAngle = Math.sin(radians);
+
+            // Calculate new dimensions of the rotated matrix
+            const width = matrix[0].length;
+            const height = matrix.length;
+
+            // Initialize a new matrix to store the rotated values
+            const rotatedMatrix = new Array(height);
+            for (let i = 0; i < height; i++) {
+                rotatedMatrix[i] = new Array(width);
+            }
+
+            // Calculate the center of the original matrix
+            const centerX = width / 2;
+            const centerY = height / 2;
+
+            // Perform rotation for each element in the original matrix
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    // Calculate the coordinates of the original point relative to the center
+                    const xOffset = x - centerX;
+                    const yOffset = y - centerY;
+
+                    // Apply rotation
+                    const rotatedX = Math.round(xOffset * cosAngle - yOffset * sinAngle + centerX);
+                    const rotatedY = Math.round(xOffset * sinAngle + yOffset * cosAngle + centerY);
+
+                    // Assign the value to the corresponding position in the rotated matrix
+                    if (rotatedX >= 0 && rotatedX < width && rotatedY >= 0 && rotatedY < height) {
+                        rotatedMatrix[rotatedY][rotatedX] = matrix[y][x];
+                    }
+                }
+            }
+
+            return rotatedMatrix;
+        }
+
+        function updateHeatMap(data) {
+            const fieldData = data.field; // Access the 'field' property of the data
+
+            // Rotate the field data by -30 degrees
+            const rotatedFieldData = rotateMatrix(fieldData, -30);
+
+            const intersection = document.getElementById('intersection');
+
+            // Clear previous content
+            intersection.innerHTML = '';
+
+            // Create new heatmap
+            for (let i = 0; i < rotatedFieldData.length; i++) {
+                for (let j = 0; j < rotatedFieldData[i].length; j++) {
+                    const value = rotatedFieldData[i][j];
+                    const square = document.createElement('div');
+                    square.classList.add('square');
+                    // Check if the square is at coordinates (9, 8)
+                    if (i === 9 && j === 8) {
+                        square.style.backgroundColor = 'orange'; // Set the color to orange
+                    } else if (i === 10 && j === 11) {
+                        square.style.backgroundColor = 'red'; // Set the color to red for coordinates (10, 11)
+                    } else if (i === 10 && j === 13) {
+                        square.style.backgroundColor = 'black';
+                    } else if (i === 8 && j === 11) {
+                        square.style.backgroundColor = 'green';
+                    } else if (i === 9 && j === 14) {
+                        square.style.backgroundColor = 'purple';
+                    } else {
+                        square.style.backgroundColor = getColor(value); // Use getColor function for other squares
+                    }
+                    intersection.appendChild(square);
+                }
+            }
+        }
+
+        // Function to determine color based on value
+        function getColor(value) {
+            if (value === 0) {
+                return 'transparent'; // Make the cell transparent if value is 0
+            } else {
+                // Normalize the value to the range [0, 1]
+                const normalizedValue = Math.min(1, value / 45000);
+
+                // Interpolate between blue and red based on the normalized value
+                const r = Math.round(255 * normalizedValue); // Red component
+                const b = Math.round(255 * (1 - normalizedValue)); // Blue component
+
+                // Return the RGB color string
+                return `rgb(${r}, 0, ${b})`;
+            }
+        }
+    </script>
+
+    <h1>Графики количества транспорта</h1> <!-- Title -->
+    <div id="chartContainer">
+        <div>
+            <label for="timeRange">Выберите временной диапазон:</label>
+            <select id="timeRange">
+                <option value="realtime">Режим реального времени</option>
+                <option value="5">5 минут</option>
+                <option value="2">2 минуты</option>
+            </select>
+        </div>
+        <canvas id="chartCanvas" width="900" height="700"></canvas>
+    </div>
+
+    <script>
+        // Создание графика на основе данных
+        function createChart(ctx, data) {
+            return new Chart(ctx, {
+                type: 'line',
+                data: data,
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: false,
+                    scales: {
+                        xAxes: [{
+                            type: 'time',
+                            time: {
+                                unit: 'minute'
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Время'
+                            }
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Количество транспорта'
+                            }
+                        }]
+                    }
+                }
+            });
+        }
+
+        // Получение случайных данных
+        function getRandomData(timeRange) {
+            const data = {
+                labels: [],
+                datasets: []
+            };
+
+            const colors = ['#FF5733', '#33FFA1', '#3366FF', '#FF33FF', '#FFFF33', '#33FFFF'];
+            const types = ['Мотоциклы', 'Легковой автомобиль', 'Легковой автомобиль с прицепом', 'Грузовой автомобиль', 'Автопоезд', 'Автобус'];
+
+            for (let i = 0; i < timeRange; i++) {
+                data.labels.push(new Date(Date.now() - (timeRange - i - 1) * 60 * 1000).toLocaleTimeString('ru-RU'));
+            }
+
+            for (let i = 0; i < 6; i++) {
+                const dataset = {
+                    label: types[i],
+                    backgroundColor: colors[i],
+                    borderColor: colors[i],
+                    data: []
+                };
+
+                for (let j = 0; j < timeRange; j++) {
+                    dataset.data.push(Math.floor(Math.random() * 20)); // Генерируем случайное количество транспорта от 0 до 20
+                }
+
+                data.datasets.push(dataset);
+            }
+
+            return data;
+        }
+
+        // Обновление графика при изменении временного диапазона
+        function updateChart(timeRange) {
+            const ctx = document.getElementById('chartCanvas').getContext('2d');
+            const data = getRandomData(timeRange);
+
+            // Если график уже существует, удаляем его
+            if (window.myChart) {
+                window.myChart.destroy();
+            }
+
+            // Создаем новый график
+            window.myChart = createChart(ctx, data);
+        }
+
+        // Обработчик изменения временного диапазона
+        document.getElementById('timeRange').addEventListener('change', function() {
+            const timeRange = this.value === 'realtime' ? 1 : parseInt(this.value);
+            updateChart(timeRange);
+        });
+
+        // Инициализация графика при загрузке страницы
+        updateChart(5);
+    </script>
+</body>
+</html>
