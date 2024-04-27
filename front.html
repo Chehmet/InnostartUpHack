@@ -89,14 +89,24 @@
     }
 
     // Function to determine color based on value
+    // Function to determine color based on value
     function getColor(value) {
-    if (value === 0) {
-      return 'transparent'; // Make the cell transparent if value is 0
-    } else {
-      const normalizedValue = Math.floor((value / 10000) * 255);
-      return `rgb(${normalizedValue}, 100, 10)`; // Set color for non-zero values
-    }
+      if (value === 0) {
+          return 'transparent'; // Make the cell transparent if value is 0
+      } else {
+          // Normalize the value to the range [0, 1]
+          const normalizedValue = Math.min(1, value / 45000);
+
+          // Interpolate between blue and red based on the normalized value
+          const r = Math.round(255 * normalizedValue); // Red component
+          const b = Math.round(255 * (1 - normalizedValue)); // Blue component
+
+          // Return the RGB color string
+          return `rgb(${r}, 0, ${b})`;
+      }
   }
+
+
 
 
   </script>
