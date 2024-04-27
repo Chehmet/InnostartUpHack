@@ -14,6 +14,7 @@
     align-items: center;
     flex-direction: column; /* Добавляем вертикальное выравнивание по центру */
     height: 100vh;
+    overflow: scroll;
   }
 
   h1 {
@@ -46,7 +47,7 @@
   </div>
 
   <script>
-    const socket = new WebSocket('ws://hack.invian.ru:9094/aboba');
+    const socket = new WebSocket('ws://localhost:8766');
 
     // Обработчик события при открытии соединения
     socket.onopen = function(event) {
@@ -68,32 +69,36 @@
 
     // Функция для обновления тепловой карты на основе данных с бэкенда
     function updateHeatMap(data) {
+      const fieldData = data.field; // Access the 'field' property of the data
+
       const intersection = document.getElementById('intersection');
 
-      // Удаляем старую таблицу, если она существует
-      while (intersection.firstChild) {
-        intersection.removeChild(intersection.firstChild);
-      }
+      // Clear previous content
+      intersection.innerHTML = '';
 
-      // Создаем новую таблицу 20x20
-      for (let i = 0; i < 20; i++) {
-        for (let j = 0; j < 20; j++) {
+      // Create new heatmap
+      for (let i = 0; i < fieldData.length; i++) {
+        for (let j = 0; j < fieldData[i].length; j++) {
+          const value = fieldData[i][j];
           const square = document.createElement('div');
           square.classList.add('square');
-          const value = data[i][j];
-          square.style.backgroundColor = getColor(value); // Устанавливаем цвет в зависимости от значения
+          square.style.backgroundColor = getColor(value);
           intersection.appendChild(square);
         }
       }
     }
 
-    // Функция для определения цвета квадрата в зависимости от значения
+    // Function to determine color based on value
     function getColor(value) {
-      // Преобразуем значение к диапазону от 0 до 255
+    if (value === 0) {
+      return 'transparent'; // Make the cell transparent if value is 0
+    } else {
       const normalizedValue = Math.floor((value / 10000) * 255);
-      // Устанавливаем красный цвет в зависимости от нормализованного значения
-      return `rgb(${normalizedValue}, 0, 0)`;
+      return `rgb(${normalizedValue}, 100, 10)`; // Set color for non-zero values
     }
+  }
+
+
   </script>
 </body>
 </html>
