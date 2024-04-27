@@ -40,7 +40,7 @@ async def kafka_to_websocket(websocket, path):
         while True:
             start_time = time.time()
             field = np.zeros((numX, numY), dtype='int')
-            while (time.time() - start_time) < 0.1:
+            while (time.time() - start_time) < 1:
                 # Poll for messages
                 msg = consumer.poll(timeout=1.0)
                 if msg is None:
@@ -60,19 +60,6 @@ async def kafka_to_websocket(websocket, path):
                     data = json.loads(value)
                     if 'center' in data:
                         # Assuming data['unix_millis'] contains the UNIX timestamp in milliseconds
-                        unix_timestamp_millis = data['unix_millis']
-
-                        # Convert milliseconds to seconds and create a datetime object
-                        timestamp_seconds = unix_timestamp_millis / 1000.0
-                        utc_datetime = datetime.datetime.utcfromtimestamp(timestamp_seconds)
-
-                        # Add an offset of 2 hours to convert to UTC+2
-                        local_datetime = utc_datetime + datetime.timedelta(hours=2)
-
-                        # Format the local datetime as a string
-                        local_time_str = local_datetime.strftime('%Y-%m-%d %H:%M:%S')
-
-                        print('Local Time (UTC+2):', local_time_str)
                         center_field_value = data['center']
                         if minX < center_field_value[0] < maxX and minY < center_field_value[1] < maxY:
                             field[int((center_field_value[0] - minX) // unitXLength)][int((center_field_value[1] - minY) // unitYLength)] += 1
