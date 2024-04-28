@@ -180,7 +180,7 @@ function getRandomBarData(timeRange) {
         datasets: []
     };
 
-    const colors = ['#FF5733', '#33FFA1', '#3366FF', '#FF33FF', '#FFFF33', '#33FFFF'];
+    const colors = ['#022E66', '#6B99C3', '#D1AB7D', '#96785B', '#C2C3C5', '#81BECE'];
     const types = ['Мотоциклы', 'Легковой автомобиль', 'Легковой автомобиль с прицепом', 'Грузовой автомобиль', 'Автопоезд', 'Автобус'];
 
     for (let i = 0; i < timeRange; i++) {
@@ -212,7 +212,7 @@ function getRandomPieData(timeRange) {
         datasets: []
     };
 
-    const colors = ['#FF5733', '#33FFA1', '#3366FF', '#FF33FF', '#FFFF33', '#33FFFF'];
+    const colors = ['#022E66', '#6B99C3', '#D1AB7D', '#96785B', '#C2C3C5', '#81BECE'];
     data.labels = ['Мотоциклы', 'Легковой автомобиль', 'Легковой автомобиль с прицепом', 'Грузовой автомобиль', 'Автопоезд', 'Автобус'];
 
     const dataset = {
@@ -231,32 +231,14 @@ function getRandomPieData(timeRange) {
 
 // Обновление графика при изменении временного диапазона
 function updateBarChart(timeRange) {
-    const ctx = document.getElementById('barChartCanvas').getContext('2d');
-    const data = getRandomBarData(timeRange);
-
-    // Если график уже существует, удаляем его
-    if (window.myBarChart) {
-        window.myBarChart.destroy();
-    }
-
-    // Создаем новый график
-    window.myBarChart = createBarChart(ctx, data);
-    window.myBarChart.resize(900, 500);
+    window.myBarChart.data = getRandomBarData(timeRange);
+    window.myBarChart.update();
 }
 
 // Обновление графика при изменении временного диапазона
 function updatePieChart(timeRange) {
-    const ctx = document.getElementById('pieChartCanvas').getContext('2d');
-    const data = getRandomPieData(timeRange);
-
-    // Если график уже существует, удаляем его
-    if (window.myPieChart) {
-        window.myPieChart.destroy();
-    }
-
-    // Создаем новый график
-    window.myPieChart = createPieChart(ctx, data);
-    window.myPieChart.resize(900, 500);
+    window.myPieChart.data = getRandomPieData(timeRange);
+    window.myPieChart.update();
 }
 
 // Обработчик изменения временного диапазона
@@ -271,7 +253,13 @@ document.getElementById('timeRangePie').addEventListener('change', function() {
     updatePieChart(timeRange);
 });
 
+window.myBarChart = createBarChart(document.getElementById('barChartCanvas').getContext('2d'), [])
+window.myPieChart = createPieChart(document.getElementById('pieChartCanvas').getContext('2d'), []);
 // Инициализация графика при загрузке страницы
 updateBarChart(5);
 // // // Инициализация графика при загрузке страницы
 updatePieChart(5);
+
+
+setInterval(() => updateBarChart(5), 5 * 1000); // Convert minutes to milliseconds
+setInterval(() => updatePieChart(5), 5 * 1000); // Convert minutes to milliseconds
