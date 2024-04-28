@@ -90,12 +90,27 @@ header {
 #barChartContainer {
     border: 2px solid #ccc;
     overflow: hidden;
-    padding: 5px;
+    padding: 10px;
+    border-radius: 15px;
+    background-color: #F6F6FD;
 }
 
 /* Styles for the chart container */
 #pieChartContainer {
+    margin-top:20px;
     border: 2px solid #ccc;
     overflow: hidden;
-    padding: 5px;
+    padding: 10px;
+    border-radius: 15px;
+    background-color: #F6F6FD;
+}
+
+#barChartCanvas {
+    width: 900px;
+    height: 700px;
+}
+
+#pieChartCanvas {
+    width: 900px;
+    height: 700px;
 }
