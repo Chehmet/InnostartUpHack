@@ -216,10 +216,11 @@ function getRandomPieData(timeRange) {
     data.labels = ['Мотоциклы', 'Легковой автомобиль', 'Легковой автомобиль с прицепом', 'Грузовой автомобиль', 'Автопоезд', 'Автобус'];
 
     const dataset = {
-        data: []
+        data: [],
+        backgroundColor: colors
     };
 
-    for (let j = 0; j < timeRange; j++) {
+    for (let j = 0; j < data.labels.length; j++) {
         dataset.data.push(Math.floor(Math.random() * 20)); // Генерируем случайное количество транспорта от 0 до 20
     }
 
@@ -234,12 +235,28 @@ function updateBarChart(timeRange) {
     const data = getRandomBarData(timeRange);
 
     // Если график уже существует, удаляем его
-    if (window.myChart) {
-        window.myChart.destroy();
+    if (window.myBarChart) {
+        window.myBarChart.destroy();
     }
 
     // Создаем новый график
-    window.myChart = createBarChart(ctx, data);
+    window.myBarChart = createBarChart(ctx, data);
+    window.myBarChart.resize(900, 500);
+}
+
+// Обновление графика при изменении временного диапазона
+function updatePieChart(timeRange) {
+    const ctx = document.getElementById('pieChartCanvas').getContext('2d');
+    const data = getRandomPieData(timeRange);
+
+    // Если график уже существует, удаляем его
+    if (window.myPieChart) {
+        window.myPieChart.destroy();
+    }
+
+    // Создаем новый график
+    window.myPieChart = createPieChart(ctx, data);
+    window.myPieChart.resize(900, 500);
 }
 
 // Обработчик изменения временного диапазона
@@ -248,5 +265,13 @@ document.getElementById('timeRangeBar').addEventListener('change', function() {
     updateBarChart(timeRange);
 });
 
+    // Обработчик изменения временного диапазона
+document.getElementById('timeRangePie').addEventListener('change', function() {
+    const timeRange = this.value === 'realtime' ? 1 : parseInt(this.value);
+    updatePieChart(timeRange);
+});
+
 // Инициализация графика при загрузке страницы
 updateBarChart(5);
+// // // Инициализация графика при загрузке страницы
+updatePieChart(5);
