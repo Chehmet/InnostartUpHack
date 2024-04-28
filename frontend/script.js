@@ -243,23 +243,26 @@ function updatePieChart(timeRange) {
 
 // Обработчик изменения временного диапазона
 document.getElementById('timeRangeBar').addEventListener('change', function() {
-    const timeRange = this.value === 'realtime' ? 1 : parseInt(this.value);
-    updateBarChart(timeRange);
+    window.BarTimeout = this.value === 'realtime' ? 1 : parseInt(this.value);
+    updateBarChart(window.BarTimeout);
+    clearInterval(intervalBar);
+    intervalBar = setInterval(() => updateBarChart(window.BarTimeout), window.BarTimeout * 60 * 1000);
 });
 
     // Обработчик изменения временного диапазона
 document.getElementById('timeRangePie').addEventListener('change', function() {
-    const timeRange = this.value === 'realtime' ? 1 : parseInt(this.value);
-    updatePieChart(timeRange);
+    window.PieTimeout = this.value === 'realtime' ? 1 : parseInt(this.value);
+    updatePieChart(window.PieTimeout);
+    clearInterval(intervalPie);
+    intervalPie = setInterval(() => updatePieChart(window.PieTimeout), window.PieTimeout * 60 * 1000);
 });
 
 window.myBarChart = createBarChart(document.getElementById('barChartCanvas').getContext('2d'), [])
 window.myPieChart = createPieChart(document.getElementById('pieChartCanvas').getContext('2d'), []);
-// Инициализация графика при загрузке страницы
-updateBarChart(5);
-// // // Инициализация графика при загрузке страницы
-updatePieChart(5);
+window.BarTimeout = 5;
+window.PieTimeout = 5;
+updateBarChart(window.BarTimeout);
+updatePieChart(window.PieTimeout);
 
-
-setInterval(() => updateBarChart(5), 5 * 1000); // Convert minutes to milliseconds
-setInterval(() => updatePieChart(5), 5 * 1000); // Convert minutes to milliseconds
+intervalBar = setInterval(() => updateBarChart(window.BarTimeout), window.BarTimeout * 60 * 1000); // Convert minutes to milliseconds
+intervalPie = setInterval(() => updatePieChart(window.PieTimeout), window.PieTimeout * 60 * 1000); // Convert minutes to milliseconds
