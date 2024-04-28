@@ -132,9 +132,9 @@ const socket = new WebSocket('ws://localhost:8766');
 }
 
 // Создание графика на основе данных
-function createChart(ctx, data) {
+function createBarChart(ctx, data) {
     return new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: data,
         options: {
             responsive: false,
@@ -161,8 +161,20 @@ function createChart(ctx, data) {
     });
 }
 
+// Создание графика на основе данных
+function createPieChart(ctx, data) {
+    return new Chart(ctx, {
+        type: 'doughnut',
+        data: data,
+        options: {
+            responsive: false,
+            maintainAspectRatio: false,
+        }
+    });
+}
+
 // Получение случайных данных
-function getRandomData(timeRange) {
+function getRandomBarData(timeRange) {
     const data = {
         labels: [],
         datasets: []
@@ -193,10 +205,33 @@ function getRandomData(timeRange) {
     return data;
 }
 
+// Получение случайных данных
+function getRandomPieData(timeRange) {
+    const data = {
+        labels: [],
+        datasets: []
+    };
+
+    const colors = ['#FF5733', '#33FFA1', '#3366FF', '#FF33FF', '#FFFF33', '#33FFFF'];
+    data.labels = ['Мотоциклы', 'Легковой автомобиль', 'Легковой автомобиль с прицепом', 'Грузовой автомобиль', 'Автопоезд', 'Автобус'];
+
+    const dataset = {
+        data: []
+    };
+
+    for (let j = 0; j < timeRange; j++) {
+        dataset.data.push(Math.floor(Math.random() * 20)); // Генерируем случайное количество транспорта от 0 до 20
+    }
+
+    data.datasets.push(dataset);
+
+    return data;
+}
+
 // Обновление графика при изменении временного диапазона
-function updateChart(timeRange) {
-    const ctx = document.getElementById('chartCanvas').getContext('2d');
-    const data = getRandomData(timeRange);
+function updateBarChart(timeRange) {
+    const ctx = document.getElementById('barChartCanvas').getContext('2d');
+    const data = getRandomBarData(timeRange);
 
     // Если график уже существует, удаляем его
     if (window.myChart) {
@@ -204,14 +239,14 @@ function updateChart(timeRange) {
     }
 
     // Создаем новый график
-    window.myChart = createChart(ctx, data);
+    window.myChart = createBarChart(ctx, data);
 }
 
 // Обработчик изменения временного диапазона
-document.getElementById('timeRange').addEventListener('change', function() {
+document.getElementById('timeRangeBar').addEventListener('change', function() {
     const timeRange = this.value === 'realtime' ? 1 : parseInt(this.value);
-    updateChart(timeRange);
+    updateBarChart(timeRange);
 });
 
 // Инициализация графика при загрузке страницы
-updateChart(5);
+updateBarChart(5);
