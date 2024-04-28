@@ -18,16 +18,28 @@
       <div class="intersection" id="intersection"></div>
     </div>
     <h1>Графики количества транспорта</h1> <!-- Title -->
-    <div id="chartContainer">
+    <div id="barChartContainer">
         <div>
-            <label for="timeRange">Выберите временной диапазон:</label>
-            <select id="timeRange">
+            <label for="timeRangeBar">Выберите временной диапазон:</label>
+            <select id="timeRangeBar">
                 <option value="realtime">Режим реального времени</option>
                 <option value="5">5 минут</option>
                 <option value="2">2 минуты</option>
             </select>
         </div>
-        <canvas id="chartCanvas" width="900" height="700"></canvas>
+        <canvas id="barChartCanvas"></canvas>
+    </div>
+
+    <div id="pieChartContainer">
+        <div>
+            <label for="timeRangePie">Выберите временной диапазон:</label>
+            <select id="timeRangePie">
+                <option value="realtime">Режим реального времени</option>
+                <option value="5">5 минут</option>
+                <option value="2">2 минуты</option>
+            </select>
+        </div>
+        <canvas id="pieChartCanvas"></canvas>
     </div>
   </body>
 </html>
