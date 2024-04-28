@@ -87,9 +87,23 @@ header {
 }
 
 /* Styles for the chart container */
-#chartContainer {
-    width: 900px;
-    height: 700px;
+#barChartContainer {
     border: 2px solid #ccc;
     overflow: hidden;
+}
+
+#barChartCanvas {
+    width: 900px;
+    height: 700px;
+}
+
+/* Styles for the chart container */
+#pieChartContainer {
+    border: 2px solid #ccc;
+    overflow: hidden;
+}
+
+#pieChartCanvas {
+    width: 900px;
+    height: 700px;
 }
