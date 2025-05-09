@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Визулизация данных Инвиан</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <button class="dashboard-button">Dashboard</button>
+    </header>
+    <h1>Тепловая карта перекрестка</h1>
+    <div class="intersection-container">
+      <div class="intersection" id="intersection"></div>
+    </div>
+    <h1>Графики количества транспорта</h1> <!-- Title -->
+    <div id="barChartContainer">
+        <div>
+            <label for="timeRangeBar">Выберите временной диапазон:</label>
+            <select id="timeRangeBar">
+                <option value="realtime">Режим реального времени</option>
+                <option value="5">5 минут</option>
+                <option value="2">2 минуты</option>
+            </select>
+        </div>
+        <canvas id="barChartCanvas"></canvas>
+    </div>
+
+    <div id="pieChartContainer">
+        <div>
+            <label for="timeRangePie">Выберите временной диапазон:</label>
+            <select id="timeRangePie">
+                <option value="realtime">Режим реального времени</option>
+                <option value="5">5 минут</option>
+                <option value="2">2 минуты</option>
+            </select>
+        </div>
+        <canvas id="pieChartCanvas"></canvas>
+    </div>
+  </body>
+</html>
